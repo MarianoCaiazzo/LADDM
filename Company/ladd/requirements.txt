@@ -1,0 +1,5 @@
+deepcase
+pandas
+seaborn
+matplotlib
+scikit-learn

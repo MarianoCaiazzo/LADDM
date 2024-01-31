@@ -1,0 +1,9 @@
+services:
+  main:
+    image: main
+    build: .
+    volumes:
+      - ./src/:/src/:Z
+      - ../logs/:/logs/:Z
+    command: tail -f /dev/null
+  

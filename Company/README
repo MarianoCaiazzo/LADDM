@@ -1,0 +1,4 @@
+docker exec -it main_main_1 python -u src/baseline_logs.py 
+docker exec -it main_main_1 python -u src/app.py
+
+docker exec -it ladd_ladd_1 python -u src/creation_model.py
