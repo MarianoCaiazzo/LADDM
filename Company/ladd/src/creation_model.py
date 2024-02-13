@@ -70,6 +70,8 @@ def create_model_RF(file_path, model_name):
         features = []
         labels = []
         for index, row in df.iterrows():
+            if 'event' in row["event"]:
+                continue
             action, n_bytes  = regex_pattern(row["event"], PATTERN)
             if action and n_bytes:
                 action_n = int(encoder.transform([action])[0])
@@ -89,7 +91,8 @@ def create_model_RF(file_path, model_name):
         print("Accuracy Random Forest:", rf_accuracy)
         joblib.dump(rf_model, f'models/rf/{model_name}')
         joblib.dump(encoder, f'models/rf/encoder.joblib')
-        evalute_model_f(models.get("RF", None), test_df, encoder_model=True)
+        train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+        evalute_model_f(rf_model, test_df, encoder_model=True)
         return rf_model
     except Exception as e:
         # Gestisci altre eccezioni se si verificano
@@ -121,7 +124,7 @@ def create_model_IF(file_path, model_name):
         model_if = IsolationForest(contamination=0.1) 
         model_if.fit(X_train)
         joblib.dump(model_if, f"models/if/{model_name}")
-        evalute_model_f(models.get("IF", None), test_df, vectorized_model=True)
+        evalute_model_f(model_if, test_df, vectorized_model=True)
         return model_if
     except Exception as e:
         # Gestisci altre eccezioni se si verificano
@@ -303,15 +306,15 @@ def plot_confusion_matrix(conf_matrix, class_names, path):
 def evalute_model_f(model, test_df, vectorized_model = None, encoder_model=None):
     path = None
     if vectorized_model:
-        path = "logs/confusion_matrix_IF"
+        path = "logs/confusion_matrix/if/cm_if.png"
         vectorizer = joblib.load("models/if/vectorized.pk1")
         nuovo_X_test = vectorizer.transform(test_df['event'])
     elif encoder_model:
         encoder = joblib.load(f'models/rf/encoder.joblib')
-        path = "logs/confusion_matrix_RF"
+        path = "logs/confusion_matrix/rf/cm_rf.png"
         # print(test_df['event'])
         nuovo_X_test = []
-        for index, row in df.iterrows():
+        for index, row in test_df.iterrows():
             action, n_bytes  = regex_pattern(row["event"], PATTERN)
             if action and n_bytes:
                 action_n = int(encoder.transform([action])[0])
@@ -325,11 +328,11 @@ def evalute_model_f(model, test_df, vectorized_model = None, encoder_model=None)
     # Effettua la previsione nel set di test
     anomalie_test_if = model.predict(nuovo_X_test)
     anomalie_test_if = [int(i) for i in anomalie_test_if]
-
+    labels = [int(i["label"]) for index, i in test_df.iterrows()]
     # etichette_effettive = [
     #     1 if etichetta == "Normal" else -1 for etichetta in test_df['Status']
     # ]
-    matrice_confusione = confusion_matrix(test_df["label"], anomalie_test_if)
+    matrice_confusione = confusion_matrix(labels, anomalie_test_if)
     plot_confusion_matrix(
         matrice_confusione, class_names=["Anomaly","Normal"], path=path
     )
@@ -339,7 +342,7 @@ def evalute_model_f(model, test_df, vectorized_model = None, encoder_model=None)
 
     # Calcola e visualizza le metriche di classificazione
     print("\nReport di Classificazione:")
-    print(classification_report(test_df["label"], anomalie_test_if))
+    print(classification_report(labels, anomalie_test_if))
 
 if __name__ == "__main__":
     print("Creation Model IA for LADD")

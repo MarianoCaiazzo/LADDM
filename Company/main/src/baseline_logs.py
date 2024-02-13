@@ -4,8 +4,8 @@ sys.path.append("logs/")
 from generate_logs import generate
 
 if __name__ == "__main__":
-    print("Generate logs baseline for IA model")
-
+    print("Generate logs baseline for IA model.......")
+    input("Click any keys to start")
     synthetic_dataset =  pd.DataFrame(
         generate(1000),columns=["event","machine","timestamp","label"]
     )
@@ -15,4 +15,5 @@ if __name__ == "__main__":
         "logs/logFileBaseline.csv",sep=",",
         index=False, header=["event","machine","timestamp","label"]
     )
+    print("Log Baseline generate successfully!")
 

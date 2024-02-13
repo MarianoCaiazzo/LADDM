@@ -1,5 +1,6 @@
 deepcase
-pandas==3.0
+Pyarrow 
+pandas
 seaborn
 matplotlib
 scikit-learn

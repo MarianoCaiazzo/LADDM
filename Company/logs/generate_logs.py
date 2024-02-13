@@ -24,7 +24,7 @@ def generate(n=1000):
         user = random.choice(users)
         intervallo = value_actions[action]
         value = random.randint(intervallo[0], intervallo[1])
-        value = value * 500 if anomaly_probability < 10 else value
+        value = value * 100 if anomaly_probability < 10 else value
         status = -1 if anomaly_probability < 10 else 1
         # print(f"ACTION= {action}, user= {user},intervallo= {intervallo},value= {value}, STATUS={status}")
         # print(anomaly_probability)

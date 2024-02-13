@@ -11,6 +11,10 @@ from deepcase.interpreter import Interpreter
 from deepcase.context_builder import ContextBuilder
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+#MACRO
+NUM_RIGHE_DA_LEGGERE = int(os.getenv("NUM_RIGHE_DA_LEGGERE", 10))
+MODE = int(os.getenv("MODE", 0))
+NUM_MODELS = 3
 
 def predict_deepcase(model, values):       
     columns = ["event","machine","timestamp","label"]
@@ -22,10 +26,11 @@ def predict_deepcase(model, values):
         value_list.append(lista)
     # value_list = [val.split(",") for val in values]
     # print(value_list)
-    df = pd.DataFrame(value_list, columns=columns) 
+    df = pd.DataFrame(value_list) 
     file_path = "logs/temp_logs_for_deep_case_predict.csv"
-    df.to_csv(file_path, sep=",", index=False)
+    df.to_csv(file_path, sep=",", header=0 , index=False)
     predicts = evalute_model_DEEPCASE(model, file_path)
+    os.remove(file_path)
     boolean_values = [True if x == -1 else False for x in predicts]
     return boolean_values
 
@@ -76,7 +81,9 @@ def predict_rf(model, value):
     return None
 
 
-def load_models():
+def load_models(mode):
+    if mode < 0 or mode > NUM_MODELS:
+        mode = 0
     folder_path = 'models'
     models = dict()
     try:
@@ -97,6 +104,8 @@ def load_models():
                         if os.path.isfile(file_path):
                             print(f"  - File trovato: {filename}")
                         if "deepcase" == subfolder:
+                            if mode != 0 and mode != 1:
+                                continue
                             deepcase_components = []
                             for component in os.listdir(
                                 f"{subfolder_path}/interpreter"
@@ -118,9 +127,13 @@ def load_models():
                             )
                             models["DEEPCASE"] = interpreter
                         if "if" == subfolder:
+                            if mode != 0 and mode != 2:
+                                continue
                             model_if = joblib.load(file_path) 
                             models["IF"] = model_if
                         if "rf" == subfolder:
+                            if mode != 0 and mode != 3:
+                                continue
                             model_if = joblib.load(file_path) 
                             models["RF"] = model_if
         else:
@@ -134,21 +147,22 @@ def load_models():
 
 def leggi_file_condiviso(models, file_path, num_righe):
     try:
-        file_error =  open("logs/errors/anomalies.csv", "a")
+        file_error =  open("logs/anomalies/anomalies.csv", "a")
     except: 
-        file_error =  open("logs/errors/anomalies.csv", "w")
+        file_error =  open("logs/anomalies/anomalies.csv", "w")
     try:
         df = pd.read_csv(
-            "logs/errors/anomalies.csv", 
+            "logs/anomalies/anomalies.csv", 
             sep=",",names=["event","machine","timestamp","label","model_name"]
         )
         with open(file_path, 'r') as file:
             righe = list(deque(file, maxlen=num_righe))
             for name_model, model in models.items():
                 if name_model == "DEEPCASE":
-                    continue
+                    print("DEEPCASE MODEL STARTS")
+
                     normal_righe = predict_deepcase(model, righe)
-                    print(f"Boolean Values {normal_righe}")
+                    # print(f"Boolean Values {normal_righe}")
                     for index, nr in enumerate(normal_righe):
                         if not nr:
                             print(
@@ -163,10 +177,11 @@ def leggi_file_condiviso(models, file_path, num_righe):
                                 file_error.write(print_file)                         
                 # print(riga, end='')
                 if name_model == "IF":
-                    continue
-                    if "event" in riga:
-                        continue
+                    print("ISOLATION FOREST MODEL STARTS")
+
                     for riga in righe:
+                        if "event" in riga:
+                            continue
                         normal = predict_if(model, riga)
                         # print(normal)
                         if normal is None:
@@ -189,6 +204,7 @@ def leggi_file_condiviso(models, file_path, num_righe):
                                 #Se non è stato gia inserita la riga con lo stesso timestamp
                                 file_error.write(print_file)
                 if name_model == "RF":
+                    print("RANDOM FOREST MODEL STARTS")
                     for riga in righe:
                         if "event" in riga:
                             continue
@@ -222,14 +238,14 @@ def leggi_file_condiviso(models, file_path, num_righe):
 
 
 if __name__ == "__main__":
+    print("LADD Started...")
     input("Please click any keys to start")
-    models = load_models()
+    models = load_models(MODE)
     while(True):
         percorso_file_condiviso = "logs/company_log.csv"
-        num_righe_da_leggere = int(os.getenv("NUM_RIGHE_DA_LEGGERE", 10))
-        # print(num_righe_da_leggere)
+        # print(NUM_RIGHE_DA_LEGGERE)
         leggi_file_condiviso(
-            models, percorso_file_condiviso, num_righe_da_leggere
+            models, percorso_file_condiviso, NUM_RIGHE_DA_LEGGERE
         )
         time.sleep(1)  # intervallo di 10 secondi
     
