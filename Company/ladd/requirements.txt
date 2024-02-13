@@ -1,5 +1,6 @@
 deepcase
-pandas
+pandas==3.0
 seaborn
 matplotlib
 scikit-learn
+tqdm

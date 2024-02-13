@@ -5,7 +5,7 @@ services:
     volumes:
       - ./src/:/src/:Z
       - ../logs/:/logs/:Z
-      - ../models/:/models:Z
+      - ./models/:/models:Z
     command: tail -f /dev/null
     environment:
       - NUM_RIGHE_DA_LEGGERE=2
