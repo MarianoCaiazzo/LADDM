@@ -4,6 +4,8 @@ import joblib
 import logging
 import traceback
 import pandas as pd
+import threading
+import concurrent.futures
 from utily import PATTERN, regex_pattern
 from collections import deque
 from creation_model import evalute_model_DEEPCASE
@@ -28,7 +30,7 @@ def predict_deepcase(model, values):
     # print(value_list)
     df = pd.DataFrame(value_list) 
     file_path = "logs/temp_logs_for_deep_case_predict.csv"
-    df.to_csv(file_path, sep=",", header=0 , index=False)
+    df.to_csv(file_path, sep=",", header=columns , index=False)
     predicts = evalute_model_DEEPCASE(model, file_path)
     os.remove(file_path)
     boolean_values = [True if x == -1 else False for x in predicts]
@@ -157,78 +159,78 @@ def leggi_file_condiviso(models, file_path, num_righe):
         )
         with open(file_path, 'r') as file:
             righe = list(deque(file, maxlen=num_righe))
-            for name_model, model in models.items():
-                if name_model == "DEEPCASE":
-                    print("DEEPCASE MODEL STARTS")
+        name_model = list(models.keys())[0]
+        model = models[name_model]
+        if name_model == "DEEPCASE":
+            print("DEEPCASE MODEL STARTS")
+            normal_righe = predict_deepcase(model, righe)
+            # print(f"Boolean Values {normal_righe}")
+            for index, nr in enumerate(normal_righe):
+                if not nr:
+                    print(
+                        name_model+
+                        " has detected as anomaky the following log: "+
+                        righe[index]
+                    )
+                    print_file = \
+                        righe[index].replace("\n","")+","+name_model+"\n"
+                    timestamp = int(righe[index].split(",")[2])
+                    if not df[df["timestamp"] == timestamp]["event"].any(): 
+                        file_error.write(print_file)                         
+        # print(riga, end='')
+        if name_model == "IF":
+            print("ISOLATION FOREST MODEL STARTS")
 
-                    normal_righe = predict_deepcase(model, righe)
-                    # print(f"Boolean Values {normal_righe}")
-                    for index, nr in enumerate(normal_righe):
-                        if not nr:
-                            print(
-                                name_model+
-                                " has detected as anomaky the following log: "+
-                                righe[index]
-                            )
-                            print_file = \
-                                righe[index].replace("\n","")+","+name_model+"\n"
-                            timestamp = int(righe[index].split(",")[2])
-                            if not df[df["timestamp"] == timestamp]["event"].any(): 
-                                file_error.write(print_file)                         
-                # print(riga, end='')
-                if name_model == "IF":
-                    print("ISOLATION FOREST MODEL STARTS")
-
-                    for riga in righe:
-                        if "event" in riga:
-                            continue
-                        normal = predict_if(model, riga)
-                        # print(normal)
-                        if normal is None:
-                            logging.info(
-                                f"Error with analize the following log: {riga}"
-                            )
-                        if not normal:
-                            print_file = riga.replace("\n", "")+","+name_model+"\n"
-                            print(
-                                name_model+ 
-                                " has detected as anomaky the following log: "+
-                                riga
-                            )
-                            timestamp = int(riga.split(",")[2])
-                            # print(df.head())
-                            # print("_____________________________________________________")
-                            # print(df[df["timestamp"] == timestamp]["event"])
-                            # print(df[df["timestamp"] == timestamp]["event"].any())
-                            if not df[df["timestamp"] == timestamp]["event"].any(): 
-                                #Se non è stato gia inserita la riga con lo stesso timestamp
-                                file_error.write(print_file)
-                if name_model == "RF":
-                    print("RANDOM FOREST MODEL STARTS")
-                    for riga in righe:
-                        if "event" in riga:
-                            continue
-                        normal = predict_rf(model, riga)
-                        # print(normal)
-                        if normal is None:
-                            logging.info(
-                                f"Error with analize the following log: {riga}"
-                            )
-                        if not normal:
-                            print_file = riga.replace("\n", "")+","+name_model+"\n"
-                            print(
-                                name_model+ 
-                                " has detected as anomaky the following log: "+
-                                riga
-                            )
-                            timestamp = int(riga.split(",")[2])
-                            # print(df.head())
-                            # print("_____________________________________________________")
-                            # print(df[df["timestamp"] == timestamp]["event"])
-                            # print(df[df["timestamp"] == timestamp]["event"].any())
-                            if not df[df["timestamp"] == timestamp]["event"].any(): 
-                                #Se non è stato gia inserita la riga con lo stesso timestamp
-                                file_error.write(print_file)
+            for riga in righe:
+                if "event" in riga:
+                    continue
+                normal = predict_if(model, riga)
+                # print(normal)
+                if normal is None:
+                    logging.info(
+                        f"Error with analize the following log: {riga}"
+                    )
+                if not normal:
+                    print_file = riga.replace("\n", "")+","+name_model+"\n"
+                    print(
+                        name_model+ 
+                        " has detected as anomaky the following log: "+
+                        riga
+                    )
+                    timestamp = int(riga.split(",")[2])
+                    # print(df.head())
+                    # print("_____________________________________________________")
+                    # print(df[df["timestamp"] == timestamp]["event"])
+                    # print(df[df["timestamp"] == timestamp]["event"].any())
+                    if not df[df["timestamp"] == timestamp]["event"].any(): 
+                        #Se non è stato gia inserita la riga con lo stesso timestamp
+                        file_error.write(print_file)
+        if name_model == "RF":
+            print("RANDOM FOREST MODEL STARTS")
+            for riga in righe:
+                if "event" in riga:
+                    continue
+                normal = predict_rf(model, riga)
+                # print(normal)
+                if normal is None:
+                    logging.info(
+                        f"Error with analize the following log: {riga}"
+                    )
+                if not normal:
+                    print_file = riga.replace("\n", "")+","+name_model+"\n"
+                    print(
+                        name_model+ 
+                        " has detected as anomaky the following log: "+
+                        riga
+                    )
+                    timestamp = int(riga.split(",")[2])
+                    # print(df.head())
+                    # print("_____________________________________________________")
+                    # print(df[df["timestamp"] == timestamp]["event"])
+                    # print(df[df["timestamp"] == timestamp]["event"].any())
+                    if not df[df["timestamp"] == timestamp]["event"].any(): 
+                        #Se non è stato gia inserita la riga con lo stesso timestamp
+                        file_error.write(print_file)
     except Exception as e:
         print(f"Si è verificato un errore: {str(e)}")
         traceback.print_exc()
@@ -240,13 +242,18 @@ def leggi_file_condiviso(models, file_path, num_righe):
 if __name__ == "__main__":
     print("LADD Started...")
     input("Please click any keys to start")
+    percorso_file_condiviso = "logs/company_log.csv"
     models = load_models(MODE)
+    args_list = [({name_model:model}, percorso_file_condiviso, NUM_RIGHE_DA_LEGGERE) for name_model,model in models.items()]
     while(True):
-        percorso_file_condiviso = "logs/company_log.csv"
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            # Esegui la funzione in parallelo per ogni argomento
+            # map() mappa la funzione ai suoi argomenti
+            executor.map(lambda args: leggi_file_condiviso(*args), args_list)
         # print(NUM_RIGHE_DA_LEGGERE)
-        leggi_file_condiviso(
-            models, percorso_file_condiviso, NUM_RIGHE_DA_LEGGERE
-        )
+        # leggi_file_condiviso(
+        #     models, percorso_file_condiviso, NUM_RIGHE_DA_LEGGERE
+        # )
         time.sleep(1)  # intervallo di 10 secondi
     
 
