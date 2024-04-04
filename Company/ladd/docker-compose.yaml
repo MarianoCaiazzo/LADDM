@@ -10,3 +10,4 @@ services:
     environment:
       - NUM_RIGHE_DA_LEGGERE=2
       - MODE=0
+      - DATASET=""
