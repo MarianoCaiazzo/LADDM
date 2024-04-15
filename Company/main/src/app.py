@@ -28,7 +28,8 @@ if os.path.exists("logs/company_log.csv"):
         )
 else:
     df.to_csv(
-            "logs/company_log.csv",sep="," , mode="w", header=columns , index=False
+            "logs/company_log.csv",sep="," , mode="w", header=columns,
+             index=False
         )
 
 print("Generating logs...")

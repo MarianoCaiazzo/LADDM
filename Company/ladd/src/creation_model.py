@@ -36,7 +36,9 @@ def create_model_RF(file_path, model_name):
             return model
         else:
             if DATASET == "synthetic":
-                return create_synthetic_rf_model(file_path, model_name, "synthetic" )
+                return create_synthetic_rf_model(
+                    file_path, model_name, "synthetic"
+                )
             elif DATASET == "hdfs":
                 return create_hdfs_rf_model(file_path, model_name, "hdfs")
     except Exception as e:
@@ -53,7 +55,9 @@ def create_model_IF(file_path, model_name):
             return model
         else:
             if DATASET == "synthetic":
-                return create_synthetic_if_model(file_path, model_name, "synthetic" )
+                return create_synthetic_if_model(
+                    file_path, model_name, "synthetic"
+                    )
             elif DATASET == "hdfs":
                 return create_hdfs_if_model(file_path, model_name, "hdfs")
     except Exception as e:
@@ -63,19 +67,26 @@ def create_model_IF(file_path, model_name):
 
 def create_model_DEEPCASE(file_path, model_name):
     try:
-        if os.path.exists(f"models/deepcase/{DATASET}/contextbuilder/ContextBuilder.save"):
+        if os.path.exists(
+                f"models/deepcase/{DATASET}/contextbuilder/ContextBuilder.save"
+            ):
             context_builder = ContextBuilder.load(
                 f"models/deepcase/{DATASET}/contextbuilder/ContextBuilder.save"
             )
             if DATASET == "synthetic":
-                if os.path.exists(f"models/deepcase/{DATASET}/interpreter/{model_name}") :
+                if os.path.exists(
+                        f"models/deepcase/{DATASET}/interpreter/{model_name}"
+                    ):
                     interpreter = Interpreter.load(
-                        f"models/deepcase/{DATASET}/interpreter/{model_name}", context_builder
+                        f"models/deepcase/{DATASET}/interpreter/{model_name}",
+                        context_builder
                     )
                     print(f"Interpreter Esistente")
                     return interpreter
                 else:
-                    create_synthetic_deepcase_model(file_path, model_name, "synthetic")
+                    create_synthetic_deepcase_model(
+                        file_path, model_name, "synthetic"
+                    )
             else:
                 print(f"Context Builder Esistente")
                 return context_builder

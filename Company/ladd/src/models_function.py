@@ -45,7 +45,9 @@ def create_synthetic_if_model(file_path, model_name, DATASET):
             # df = df.drop(columns=['machine', 'timestamp'])
             # Esempio di dati di testo (sostituisci questo con i tuoi dati)
             # Utilizza TF-IDF per convertire il testo in una rappresentazione numerica
-            train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+            train_df, test_df = train_test_split(
+                df, test_size=0.2, random_state=42
+            )
             vectorizer = TfidfVectorizer()
             X_train = vectorizer.fit_transform(train_df['event'])
             joblib.dump(vectorizer, f"models/if/{DATASET}/vectorized.pk1")
@@ -53,7 +55,9 @@ def create_synthetic_if_model(file_path, model_name, DATASET):
             model_if = IsolationForest(contamination=0.1) 
             model_if.fit(X_train)
             joblib.dump(model_if, f"models/if/{DATASET}/{model_name}")
-            evaluate_model_f(model_if, test_df, vectorized_model=True, DATASET=DATASET)
+            evaluate_model_f(
+                model_if, test_df, vectorized_model=True, DATASET=DATASET
+            )
             return model_if
 
 
@@ -62,7 +66,9 @@ def create_synthetic_rf_model(file_path, model_name, DATASET):
             print(f"Il file {model_name} non esiste. Verra Generato il Modello!")
             # elimina_timestamp(file_path, file_path_WO_TS="logs/logfileWithoutTS.csv")
             df = pd.read_csv(
-                file_path, sep=",", names=["event","machine","timestamp","label"]
+                file_path, 
+                sep=",", 
+                names=["event","machine","timestamp","label"]
             )
             
             dataset = ["Create", "Edit", "Login", "Logout"]
@@ -92,7 +98,9 @@ def create_synthetic_rf_model(file_path, model_name, DATASET):
             print("Accuracy Random Forest:", rf_accuracy)
             joblib.dump(rf_model, f'models/rf/{DATASET}/{model_name}')
             joblib.dump(encoder, f'models/rf/{DATASET}/encoder.joblib')
-            train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+            train_df, test_df = train_test_split(
+                df, test_size=0.2, random_state=42
+            )
             evaluate_model_f(rf_model, test_df, DATASET, encoder_model=True)
             return rf_model
 
@@ -141,7 +149,9 @@ def create_synthetic_deepcase_model(file_path, model_name, DATASET):
         verbose       = True,                        # If True, prints progress
     )
     
-    context_builder.save(f'models/deepcase/{DATASET}/contextbuilder/ContextBuilder.save')
+    context_builder.save(
+        f'models/deepcase/{DATASET}/contextbuilder/ContextBuilder.save'
+    )
 
     # Create Interpreter
     interpreter = Interpreter(
@@ -207,17 +217,25 @@ def create_hdfs_if_model(file_path, model_name, DATASET="hdfs"):
     path = file_path.split("-")[0]
     df = pd.read_csv(path, sep=",")
     df_features = df[["Features", "Latency"]]
-    df_features[['Features']] = df_features[['Features']].applymap(lambda x: elimina_alfa(x))
+    df_features[['Features']] = df_features[['Features']].applymap(
+                                                    lambda x: elimina_alfa(x)
+    )
     labels_string = df[["Label"]]
     labels = labels_string.applymap(lambda x: 1 if x == "Success" else -1)
-    X_train, X_test, y_train, y_test = train_test_split(df_features, labels, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+                            df_features, labels, test_size=0.2, random_state=42
+    )
 
     model_if = IsolationForest(contamination=0.1)
     model_if.fit(X_train)
     joblib.dump(model_if, f"models/if/{DATASET}/{model_name}")
     anomalie_test_if = model_if.predict(X_test)
     matrice_confusione = confusion_matrix(y_test, anomalie_test_if)
-    plot_confusion_matrix(matrice_confusione, class_names=["Anomaly","Normal"], path=f"logs/confusion_matrix/if/{DATASET}/cm_if.png")
+    plot_confusion_matrix(
+        matrice_confusione, 
+        class_names=["Anomaly","Normal"], 
+        path=f"logs/confusion_matrix/if/{DATASET}/cm_if.png"
+    )
     # Visualizza la matrice di confusione
     print("Matrice di Confusione:")
     print(matrice_confusione)
@@ -244,8 +262,12 @@ def create_hdfs_rf_model(file_path, model_name, DATASET="hdfs"):
     df_features = df[["Features", "Latency"]]
     labels_string = df[["Label"]]
     labels = labels_string.applymap(lambda x: 1 if x == "Success" else -1)
-    df_features[['Features']] = df_features[['Features']].applymap(lambda x: elimina_alfa(x))
-    X_train, X_test, y_train, y_test = train_test_split(df_features, labels, test_size=0.2, random_state=42)
+    df_features[['Features']] = df_features[['Features']].applymap(
+                                                    lambda x: elimina_alfa(x)
+    )
+    X_train, X_test, y_train, y_test = train_test_split(
+                            df_features, labels, test_size=0.2, random_state=42
+    )
 
     rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
     rf_model.fit(X_train, y_train)
@@ -255,7 +277,11 @@ def create_hdfs_rf_model(file_path, model_name, DATASET="hdfs"):
     joblib.dump(rf_model, f"models/rf/{DATASET}/{model_name}")
     anomalie_test_rf = rf_model.predict(X_test)
     matrice_confusione = confusion_matrix(y_test, anomalie_test_rf)
-    plot_confusion_matrix(matrice_confusione, class_names=["Anomaly","Normal"], path=f"logs/confusion_matrix/rf/{DATASET}/cm_rf.png")
+    plot_confusion_matrix(
+        matrice_confusione, 
+        class_names=["Anomaly","Normal"], 
+        path=f"logs/confusion_matrix/rf/{DATASET}/cm_rf.png"
+    )
 
     # Visualizza la matrice di confusione
     print("Matrice di Confusione:")
@@ -304,7 +330,9 @@ def create_synthetic_deepcase_model(file_path, model_name, DATASET="hdfs"):
         verbose       = True,                        # If True, prints progress
     )
 
-    context_builder.save(f'models/deepcase/{DATASET}/contextbuilder/ContextBuilder.save')
+    context_builder.save(
+        f'models/deepcase/{DATASET}/contextbuilder/ContextBuilder.save'
+    )
 
     ########################################################################
     #                  Get prediction from ContextBuilder                  #
@@ -371,7 +399,9 @@ def create_synthetic_deepcase_model(file_path, model_name, DATASET="hdfs"):
 
 ################################################################################
 
-def evaluate_model_f(model, test_df, DATASET, vectorized_model = None, encoder_model=None):
+def evaluate_model_f(
+    model, test_df, DATASET, vectorized_model = None, encoder_model=None
+):
     path = None
     if vectorized_model:
         path = f"logs/confusion_matrix/if/{DATASET}/cm_if.png"

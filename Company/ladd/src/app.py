@@ -199,7 +199,7 @@ def leggi_file_condiviso(models, file_path, num_righe):
                     )
                     timestamp = int(riga.split(",")[2])
                     # print(df.head())
-                    # print("_____________________________________________________")
+                    # print("__________________________________________________")
                     # print(df[df["timestamp"] == timestamp]["event"])
                     # print(df[df["timestamp"] == timestamp]["event"].any())
                     if not df[df["timestamp"] == timestamp]["event"].any(): 
@@ -225,7 +225,7 @@ def leggi_file_condiviso(models, file_path, num_righe):
                     )
                     timestamp = int(riga.split(",")[2])
                     # print(df.head())
-                    # print("_____________________________________________________")
+                    # print("_________________________________________________")
                     # print(df[df["timestamp"] == timestamp]["event"])
                     # print(df[df["timestamp"] == timestamp]["event"].any())
                     if not df[df["timestamp"] == timestamp]["event"].any(): 
@@ -244,7 +244,12 @@ if __name__ == "__main__":
     input("Please click any keys to start")
     percorso_file_condiviso = "logs/company_log.csv"
     models = load_models(MODE)
-    args_list = [({name_model:model}, percorso_file_condiviso, NUM_RIGHE_DA_LEGGERE) for name_model,model in models.items()]
+    args_list = [
+        ({name_model:model}, 
+        percorso_file_condiviso, NUM_RIGHE_DA_LEGGERE
+        ) 
+        for name_model,model in models.items()
+    ]
     while(True):
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             # Esegui la funzione in parallelo per ogni argomento
