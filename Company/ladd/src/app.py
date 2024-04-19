@@ -31,7 +31,7 @@ def predict_deepcase(model, values):
     df = pd.DataFrame(value_list) 
     file_path = "logs/temp_logs_for_deep_case_predict.csv"
     df.to_csv(file_path, sep=",", header=columns , index=False)
-    predicts = evalute_model_DEEPCASE(model, file_path)
+    predicts = evalute_modgit el_DEEPCASE(model, file_path)
     os.remove(file_path)
     boolean_values = [True if x == -1 else False for x in predicts]
     return boolean_values

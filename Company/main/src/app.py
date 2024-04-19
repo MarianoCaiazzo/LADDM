@@ -15,8 +15,6 @@ def genera_log():
     file.write(str(data[0][-1])+"\n")
     file.close()
 
-# Configura il sistema di logging
-# logging.basicConfig(filename='logs/company_log.txt', level=logging.INFO)
 print("LOG APPLICATION STARTING...")
 # Esegui il servizio che genera log ogni tot secondi
 input("Please click any keys to start")

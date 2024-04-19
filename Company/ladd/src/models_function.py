@@ -64,7 +64,6 @@ def create_synthetic_if_model(file_path, model_name, DATASET):
 def create_synthetic_rf_model(file_path, model_name, DATASET):
      # Gestisci il caso in cui il file non esiste
             print(f"Il file {model_name} non esiste. Verra Generato il Modello!")
-            # elimina_timestamp(file_path, file_path_WO_TS="logs/logfileWithoutTS.csv")
             df = pd.read_csv(
                 file_path, 
                 sep=",", 
@@ -418,8 +417,6 @@ def evaluate_model_f(
                 action_n = int(encoder.transform([action])[0])
                 value = list([action_n, (n_bytes)])
                 nuovo_X_test.append(value)
-                # labels.append(row["label"])
-                # print(action, n_bytes)
     else:
         print("Error, vectorized and encodere are None")
         return
@@ -458,19 +455,7 @@ def evalute_model_DEEPCASE(interpreter, file_path):
     events_test   = events
     context_test  = context
     label_test    = labels
-    # print(events)
-    # print("________________________________________________")
-    # print(context)
-    # print("________________________________________________")
-    # print(labels)
-    # context_test_n = normalize_tensor(context_test)
-    # events_test_n = normalize_tensor(events_test)
-    # print(context_test_n)
-    # print("________________________________________________")
-    # print(events_test_n)
-    # print("________________________________________________")
-
-
+    
     # Compute predicted scores
     predictions = interpreter.predict(
         X          = context_test,               # Context to predict
